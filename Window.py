@@ -1,30 +1,48 @@
 import tkinter
-from Piece import Piece
+from Piece import Piece, WhitePiece, BlackPiece
 from PIL import ImageTk, Image
 from os import getcwd
 
      
 class MainWindow:
 
+    def callback(self, event):
+        column, row = self.deswap(event.x, event.y)
+        print('callback', column, row)
+        piece = self.field[row][column]  
+        if piece:
+            if isinstance(piece, Piece):
+                if piece.focused == False:
+                    self.reset_focus()
+                    piece.set_focus()
+                    self.focused = piece
+                else:
+                    self.reset_focus()
+                    self.focused = None
+            else:
+                print(f'move from {self.focused.pos} to [{column}, {row}]')
+                self.reset_focus()
+                self.focused.move(column, row)
+                
     def set_focus_on_field(self, column, row):
         x,y = self.swap(column, row)
         sprite = self.sprites['focus']
-        self.focus = self.canvas.create_image(x, y, image=sprite)
+        self.field[row][column] = self.canvas.create_image(x, y, image=sprite)
         
     def remove_focus_on_field(self, column, row):
-        self.canvas.delete(self.focus)
-        self.focus = None
+        self.canvas.delete(self.field[row][column])
+        self.field[row][column] = None
 
     def reset_focus(self):
-        for row in self.field:
-            for column in row:
-                if column:
-                    column.remove_focus(column.side)
+        for row in range(len(self.field)):
+            for column in range(len(self.field[row])):
+                if isinstance(self.field[row][column], Piece):
+                    self.field[row][column].remove_focus()
                 else:
                     self.remove_focus_on_field(column, row)
 
     def swap(self, column, row):
-        return (2 * column + 1) * self.cell_radius, (2 * row + 1) * self.cell_radius
+        return (2 * column + 1) *  self.cell_radius, (2 * row + 1) * self.cell_radius
     
     def deswap(self, x, y):
         return  int(x // (self.cell_radius * 2)), int(y // (self.cell_radius * 2))
@@ -53,23 +71,13 @@ class MainWindow:
         for row in range(row, row + 3):
             column = start
             for column in range (column, 8, 2):
-                piece = Piece(self, side, column, row)
+                if side == 'white':
+                    piece = WhitePiece(self, column, row)
+                else:
+                    piece = BlackPiece(self, column, row)
                 self.field[row][column] = piece
             start = offset[start]
             
-    def callback(self, event):
-        column, row = self.deswap(event.x, event.y)
-        piece = self.field[row][column]  
-        if piece:
-            if piece.focused == False:
-                self.reset_focus()
-                piece.set_focus(piece.side)
-            else:
-                piece.remove_focus(piece.side)
-        else:
-            #self.reset_focus()
-            self.set_focus_on_field(column, row)
-
     def get_sprites(self):
         for name in ['white', 'black', 'white_focus', 'black_focus', 'focus']:
             image = Image.open(f'{getcwd()}\Sprites\\{name}.png')
@@ -86,7 +94,7 @@ class MainWindow:
         
     def __init__(self, screen_size):
         self.sprites = {}
-        self.focus = None
+        self.focused = None
         self.screen_size = screen_size
         self.cell_radius = self.screen_size / 16
         self.field = [[None,None,None,None,None,None,None,None] for elem in range(8)]
