@@ -6,32 +6,23 @@ from os import getcwd
      
 class MainWindow:
 
+
     def callback(self, event):
-        column, row = self.deswap(event.x, event.y)
-        print('callback', column, row)
+        row, column = self.get_field_pos(event.y, event.x)
         piece = self.field[row][column]  
         if piece:
             if isinstance(piece, Piece):
                 if piece.focused == False:
                     self.reset_focus()
-                    piece.set_focus()
+                    piece.set_focus() ####
                     self.focused = piece
                 else:
                     self.reset_focus()
                     self.focused = None
             else:
-                print(f'move from {self.focused.pos} to [{column}, {row}]')
                 self.reset_focus()
-                self.focused.move(column, row)
-                
-    def set_focus_on_field(self, column, row):
-        x,y = self.swap(column, row)
-        sprite = self.sprites['focus']
-        self.field[row][column] = self.canvas.create_image(x, y, image=sprite)
+                self.focused.move(row, column)
         
-    def remove_focus_on_field(self, column, row):
-        self.canvas.delete(self.field[row][column])
-        self.field[row][column] = None
 
     def reset_focus(self):
         for row in range(len(self.field)):
@@ -39,13 +30,26 @@ class MainWindow:
                 if isinstance(self.field[row][column], Piece):
                     self.field[row][column].remove_focus()
                 else:
-                    self.remove_focus_on_field(column, row)
+                    self.remove_focus_on_field(row, column)
 
-    def swap(self, column, row):
-        return (2 * column + 1) *  self.cell_radius, (2 * row + 1) * self.cell_radius
+    def remove_focus_on_field(self, row, column):
+        self.canvas.delete(self.field[row][column])
+        self.field[row][column] = None
+
+    def set_focus_on_field(self, row, column):
+        y,x = self.get_screen_pos(row, column)
+        sprite = self.sprites['focus']
+        self.field[row][column] = self.canvas.create_image(x, y, image=sprite)
+
+    def get_screen_pos(self, row, column):
+        x = (2 * column + 1) *  self.cell_radius
+        y = (2 * row + 1) * self.cell_radius
+        return y, x
     
-    def deswap(self, x, y):
-        return  int(x // (self.cell_radius * 2)), int(y // (self.cell_radius * 2))
+    def get_field_pos(self, y, x):
+        column = int(x // (self.cell_radius * 2))
+        row = int(y // (self.cell_radius * 2))
+        return  row, column
     
     def draw_field(self, color1, color2):
         colors = {color1: color2, color2: color1}
@@ -72,9 +76,9 @@ class MainWindow:
             column = start
             for column in range (column, 8, 2):
                 if side == 'white':
-                    piece = WhitePiece(self, column, row)
+                    piece = WhitePiece(self, row, column)
                 else:
-                    piece = BlackPiece(self, column, row)
+                    piece = BlackPiece(self, row, column)
                 self.field[row][column] = piece
             start = offset[start]
             
@@ -97,7 +101,7 @@ class MainWindow:
         self.focused = None
         self.screen_size = screen_size
         self.cell_radius = self.screen_size / 16
-        self.field = [[None,None,None,None,None,None,None,None] for elem in range(8)]
+        self.field = [[None,None,None,None,None,None,None,None] for _ in range(8)]
         self.root_setup()
         self.canvas = tkinter.Canvas(self.root, bg='black')
         self.canvas.place(x=0, y=0, width=self.screen_size, height=self.screen_size)
