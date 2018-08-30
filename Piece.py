@@ -10,21 +10,21 @@ class Piece:
         return moves
 
     def find_moves(self, current_pos, depth):
-        moves = self.check_edge(current_pos)
-        for head in [-1,1]:
-            row = current_pos[0] + head
-            for move in moves:
-                column = current_pos[1] + move
+        sides = self.check_edge(current_pos)
+        for front in [-1,1]:
+            row = current_pos[0] + front
+            for side in sides:
+                column = current_pos[1] + side
                 if row < 0 or row > 7 or column < 0 or column > 7:
                     continue
                 cell = self.window.field[row][column]
                 if cell == None:
-                    if depth == 0 and head == self.head:
+                    if depth == 0 and front == self.front:
                         self.window.set_focus_on_field(row, column)
-                elif type(cell) != type(self) and column + move < 8 and row + head < 8:
-                    if self.window.field[row + head][column + move] == None:
-                        self.window.set_focus_on_field(row + head, column + move)
-                        self.find_moves([row + head, column + move], depth + 1)
+                elif type(cell) != type(self) and  0 < column + side < 8 and 0 < row + front < 8:
+                    if self.window.field[row + front][column + side] == None:
+                        self.window.set_focus_on_field(row + front, column + side)
+                        self.find_moves([row + front, column + side], depth + 1)
                              
     def remove_focus(self):
         self.window.canvas.delete(self.image)
@@ -53,10 +53,13 @@ class Piece:
          sprite = self.window.sprites[side]
          self.image = self.window.canvas.create_image(x, y, image=sprite)
 
-    def __init__(self, window, side, head, row, column):
+    def __init__(self, window, side, row, column):
         self.window = window
-        self.head = head
         self.side = side
+        if self.side == 'white':
+            self.front = -1
+        else:
+            self.front = 1
         self.focused = False
         self.pos = [row, column]
         self.set_sprite(self.side)
@@ -68,9 +71,9 @@ class Piece:
 
 class WhitePiece(Piece):
     def __init__(self,window, row, column):
-        super().__init__(window, 'white', -1, row, column)
+        super().__init__(window, 'white', row, column)
         
 class BlackPiece(Piece):
     def __init__(self,window, row, column):
-        super().__init__(window, 'black', 1, row, column)
+        super().__init__(window, 'black', row, column)
         
