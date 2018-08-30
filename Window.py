@@ -14,7 +14,7 @@ class MainWindow:
             if isinstance(piece, Piece):
                 if piece.focused == False:
                     self.reset_focus()
-                    piece.set_focus() ####
+                    piece.set_focus()
                     self.focused = piece
                 else:
                     self.reset_focus()
