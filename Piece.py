@@ -1,24 +1,23 @@
 class Piece:
 
-    def find_moves(self, current_pos, depth):
-        if (current_pos[0] == 0 and self.side == 'white') or (current_pos[0] == 7 and self.side == 'black'):
-            return
+    def find_moves(self, current_pos, heads, depth):
         moves = [-1, 1]
         if current_pos[1] == 0:
             moves = [1]
         elif current_pos[1] == 7:
             moves = [-1]
-        for move in moves:
-            row = current_pos[0] + self.head
-            column = current_pos[1] + move
-            cell = self.window.field[row][column]
-            if cell == None:
-                if depth == 0:
-                    self.window.set_focus_on_field(row, column)
-            elif type(cell) != type(self) and column + move < 8 and row + self.head < 8:
-                if self.window.field[row + self.head][column + move] == None:
-                    self.window.set_focus_on_field(row + self.head, column + move)
-                    self.find_moves([row + self.head, column + move], depth + 1)
+        for head in heads:
+            for move in moves:
+                row = current_pos[0] + head
+                column = current_pos[1] + move
+                cell = self.window.field[row][column]
+                if cell == None:
+                    if depth == 0:
+                        self.window.set_focus_on_field(row, column)
+                elif type(cell) != type(self) and column + move < 8 and row + head < 8:
+                    if self.window.field[row + head][column + move] == None:
+                        self.window.set_focus_on_field(row + head, column + move)
+                        self.find_moves([row + head, column + move], [-1,1], depth + 1)
                              
     def remove_focus(self):
         self.window.canvas.delete(self.image)
@@ -29,7 +28,7 @@ class Piece:
         self.window.canvas.delete(self.image)
         self.set_sprite(f'{self.side}_focus')
         self.focused = True
-        self.find_moves(self.pos, 0)
+        self.find_moves(self.pos, self.heads, 0)
         
     def move(self, row, column):
         dy = row - self.pos[0]
@@ -49,7 +48,6 @@ class Piece:
 
     def __init__(self, window, side, row, column):
         self.window = window
-        self.head = None
         self.side = side
         self.focused = False
         self.pos = [row, column]
@@ -63,10 +61,10 @@ class Piece:
 class WhitePiece(Piece):
     def __init__(self,window, row, column):
         super().__init__(window, 'white', row, column)
-        self.head = -1
+        self.heads = [-1]
 
 class BlackPiece(Piece):
     def __init__(self,window, row, column):
         super().__init__(window, 'black', row, column)
-        self.head = 1
+        self.heads = [1]
         
