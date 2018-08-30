@@ -21,7 +21,7 @@ class Piece:
                 if cell == None:
                     if depth == 0 and front == self.front:
                         self.window.set_focus_on_field(row, column)
-                elif type(cell) != type(self) and  0 < column + side < 8 and 0 < row + front < 8:
+                elif type(cell) != type(self) and  0 <= column + side < 8 and 0 <= row + front < 8:
                     if self.window.field[row + front][column + side] == None:
                         self.window.set_focus_on_field(row + front, column + side)
                         self.find_moves([row + front, column + side], depth + 1)

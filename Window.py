@@ -108,7 +108,7 @@ class MainWindow:
         self.get_sprites()
 
 
-window = MainWindow(640)
+window = MainWindow(400)
 window.draw_field('white', 'brown')
 window.setup_pieces('white')
 window.setup_pieces('black')
