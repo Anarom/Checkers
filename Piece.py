@@ -46,8 +46,9 @@ class Piece:
          sprite = self.window.sprites[side]
          self.image = self.window.canvas.create_image(x, y, image=sprite)
 
-    def __init__(self, window, side, row, column):
+    def __init__(self, window, side, heads, row, column):
         self.window = window
+        self.heads = heads
         self.side = side
         self.focused = False
         self.pos = [row, column]
@@ -60,11 +61,9 @@ class Piece:
 
 class WhitePiece(Piece):
     def __init__(self,window, row, column):
-        super().__init__(window, 'white', row, column)
-        self.heads = [-1]
-
+        super().__init__(window, 'white',[-1], row, column)
+        
 class BlackPiece(Piece):
     def __init__(self,window, row, column):
-        super().__init__(window, 'black', row, column)
-        self.heads = [1]
+        super().__init__(window, 'black', [1], row, column)
         
