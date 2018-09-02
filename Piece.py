@@ -21,23 +21,23 @@ class Piece:
 
     def find_moves(self, current_pos, targets, depth = 0, is_final = False):
         sides = self.check_edge(current_pos)
-        for front in [-1,1]:
-            row = current_pos[0] + front
-            for side in sides:
-                column = current_pos[1] + side
+        for front_move in [-1,1]:
+            row = current_pos[0] + front_move
+            for side_move in sides:
+                column = current_pos[1] + side_move
                 if row < 0 or row > 7 or column < 0 or column > 7:
                     continue
-                cell = self.window.field[row][column]
-                if cell == None:
-                    if depth == 0 and front == self.front:
+                next_cell = self.window.field[row][column]
+                if next_cell == None:
+                    if depth == 0 and front_move == self.front:
                         self.window.set_focus_on_field(row, column)
                         self.moves.append([row,column,[]])
-                elif type(cell) != type(self) and  0 <= column + side < 8 and 0 <= row + front < 8:
-                    if self.window.field[row + front][column + side] == None:
+                elif type(next_cell) != type(self) and  0 <= column + side_move < 8 and 0 <= row + front_move < 8:
+                    if self.window.field[row + front_move][column + side_move] == None:
                         is_final = False
                         targets.append([row,column])
-                        self.window.set_focus_on_field(row + front, column + side)
-                        targets = self.find_moves([row + front, column + side], targets, depth + 1, True)
+                        self.window.set_focus_on_field(row + front_move, column + side_move)
+                        targets = self.find_moves([row + front_move, column + side_move], targets, depth + 1, True)
         if is_final:
             self.moves.append([current_pos[0],current_pos[1], targets])
         else:
@@ -78,16 +78,20 @@ class Piece:
          self.image = self.window.canvas.create_image(x, y, image=sprite)
 
 
+    def set_front(self, side):
+        if side == 'white':
+            self.front = -1
+        else:
+            self.front = 1
+
+
     def __init__(self, window, side, row, column):
         self.window = window
         self.moves = []
         self.side = side
-        if self.side == 'white':
-            self.front = -1
-        else:
-            self.front = 1
         self.focused = False
         self.pos = [row, column]
+        self.set_front(self.side)
         self.set_sprite(self.side)
 
 
