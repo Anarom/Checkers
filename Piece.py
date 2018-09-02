@@ -9,7 +9,7 @@ class Piece:
             moves = [-1,1]
         return moves
 
-    def find_moves(self, current_pos, depth):
+    def find_moves(self, current_pos, moves, depth = 0, is_final = False):
         sides = self.check_edge(current_pos)
         for front in [-1,1]:
             row = current_pos[0] + front
@@ -21,11 +21,17 @@ class Piece:
                 if cell == None:
                     if depth == 0 and front == self.front:
                         self.window.set_focus_on_field(row, column)
+                        self.moves.append([row,column,[]])
                 elif type(cell) != type(self) and  0 <= column + side < 8 and 0 <= row + front < 8:
                     if self.window.field[row + front][column + side] == None:
+                        is_final = False
+                        moves.append(cell)
                         self.window.set_focus_on_field(row + front, column + side)
-                        self.find_moves([row + front, column + side], depth + 1)
-                             
+                        moves = self.find_moves([row + front, column + side], moves, depth + 1, True)
+        if is_final:
+            self.moves.append([current_pos[0],current_pos[1], moves])
+        return moves
+    
     def remove_focus(self):
         self.window.canvas.delete(self.image)
         self.set_sprite(f'{self.side}')
@@ -35,7 +41,9 @@ class Piece:
         self.window.canvas.delete(self.image)
         self.set_sprite(f'{self.side}_focus')
         self.focused = True
-        self.find_moves(self.pos, 0)
+        self.moves = []
+        self.find_moves(self.pos,[])
+        print(self.moves)
         
     def move(self, row, column):
         dy = row - self.pos[0]
@@ -55,6 +63,7 @@ class Piece:
 
     def __init__(self, window, side, row, column):
         self.window = window
+        self.moves = []
         self.side = side
         if self.side == 'white':
             self.front = -1
