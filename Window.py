@@ -5,10 +5,22 @@ from os import getcwd
 
      
 class MainWindow:
+
+
+    def side_has_moves(self,side):
+        has_moves = False
+        for row in self.field:
+            for column in row:
+                if isinstance(column, Piece) and column.side == self.turn:
+                    column.find_moves(column.pos, [])
+                    if column.moves:
+                        has_moves =  True
+        self.reset_focus()
+        return has_moves
                         
     def callback(self, event):
         row, column = self.get_field_pos(event.y, event.x)
-        piece = self.field[row][column]  
+        piece = self.field[row][column]
         if piece:
             if isinstance(piece, Piece):
                 if piece.side == self.turn:
@@ -33,6 +45,8 @@ class MainWindow:
             self.turn = 'black'
         else:
             self.turn = 'white'
+        if not self.side_has_moves(self.turn):
+            self.end_game(self.turn)
 
 
     def end_game(self,loser_side):
