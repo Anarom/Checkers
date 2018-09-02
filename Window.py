@@ -33,13 +33,15 @@ class MainWindow:
                     self.remove_focus_on_field(row, column)
 
     def remove_focus_on_field(self, row, column):
-        self.canvas.delete(self.field[row][column])
-        self.field[row][column] = None
+        if not isinstance(self.field[row][column], Piece):
+            self.canvas.delete(self.field[row][column])
+            self.field[row][column] = None
 
     def set_focus_on_field(self, row, column):
-        y,x = self.get_screen_pos(row, column)
-        sprite = self.sprites['focus']
-        self.field[row][column] = self.canvas.create_image(x, y, image=sprite)
+        if not isinstance(self.field[row][column], Piece):
+            y,x = self.get_screen_pos(row, column)
+            sprite = self.sprites['focus']
+            self.field[row][column] = self.canvas.create_image(x, y, image=sprite)
 
     def get_screen_pos(self, row, column):
         x = (2 * column + 1) *  self.cell_radius
@@ -92,7 +94,7 @@ class MainWindow:
     
     def root_setup(self):
         self.root = tkinter.Tk()
-        self.root.geometry(f'{self.screen_size}x{self.screen_size}+650+30')
+        self.root.geometry(f'{self.screen_size}x{self.screen_size}+250+30')
         self.root.bind('<Button-1>', self.callback)
         self.root.title('Checkers')
         
@@ -108,7 +110,7 @@ class MainWindow:
         self.get_sprites()
 
 
-window = MainWindow(400)
+window = MainWindow(640)
 window.draw_field('white', 'brown')
 window.setup_pieces('white')
 window.setup_pieces('black')
