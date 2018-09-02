@@ -30,6 +30,8 @@ class Piece:
                         moves = self.find_moves([row + front, column + side], moves, depth + 1, True)
         if is_final:
             self.moves.append([current_pos[0],current_pos[1], moves])
+        else:
+            self.window.remove_focus_on_field(current_pos[0],current_pos[1])
         return moves
     
     def remove_focus(self):
