@@ -12,16 +12,21 @@ class MainWindow:
         piece = self.field[row][column]  
         if piece:
             if isinstance(piece, Piece):
-                if piece.focused == False:
-                    self.reset_focus()
-                    piece.set_focus()
-                    self.focused = piece
-                else:
-                    self.reset_focus()
-                    self.focused = None
+                if piece.side == self.turn:
+                    if piece.focused == False:
+                        self.reset_focus()
+                        piece.set_focus()
+                        self.focused = piece
+                    else:
+                        self.reset_focus()
+                        self.focused = None
             else:
                 self.reset_focus()
                 self.focused.move(row, column)
+                if self.turn == 'white':
+                    self.turn = 'black'
+                else:
+                    self.turn = 'white'
         
 
     def reset_focus(self):
@@ -100,6 +105,7 @@ class MainWindow:
         
     def __init__(self, screen_size):
         self.sprites = {}
+        self.turn = 'white'
         self.focused = None
         self.screen_size = screen_size
         self.cell_radius = self.screen_size / 16
