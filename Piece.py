@@ -25,7 +25,7 @@ class Piece:
                 elif type(cell) != type(self) and  0 <= column + side < 8 and 0 <= row + front < 8:
                     if self.window.field[row + front][column + side] == None:
                         is_final = False
-                        moves.append(cell)
+                        moves.append([row,column])
                         self.window.set_focus_on_field(row + front, column + side)
                         moves = self.find_moves([row + front, column + side], moves, depth + 1, True)
         if is_final:
@@ -45,13 +45,16 @@ class Piece:
         self.focused = True
         self.moves = []
         self.find_moves(self.pos,[])
-        print(self.moves)
         
     def move(self, row, column):
         dy = row - self.pos[0]
         dx = column - self.pos[1]
         y = dy * self.window.cell_radius * 2
         x = dx * self.window.cell_radius * 2
+        for move in self.moves:
+            if row == move[0] and column == move[1]:
+                for piece in move[2]:
+                    self.window.field[piece[0]][piece[1]] = None
         self.window.canvas.move(self.image, x, y)
         self.window.field[self.pos[0]][self.pos[1]] = None
         self.pos[0] = row
@@ -77,7 +80,6 @@ class Piece:
 
     def __del__(self):
         self.window.canvas.delete(self.image)
-        print('removed', self.pos)
 
 
 class WhitePiece(Piece):
