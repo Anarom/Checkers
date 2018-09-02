@@ -4,7 +4,7 @@ from PIL import ImageTk, Image
 from os import getcwd
 
      
-class MainWindow:
+class GameWindow:
 
 
     def side_has_moves(self,side):
@@ -139,6 +139,16 @@ class MainWindow:
         self.root.bind('<Button-1>', self.callback)
         self.root.title('Checkers')
 
+
+    def set_game(self):
+        self.root_setup()
+        self.canvas = tkinter.Canvas(self.root, bg='black')
+        self.canvas.place(x=0, y=0, width=self.screen_size, height=self.screen_size)
+        self.get_sprites()
+        self.draw_field('white', 'brown')
+        self.setup_pieces('white')
+        self.setup_pieces('black')
+
         
     def __init__(self, screen_size):
         self.sprites = {}
@@ -148,14 +158,8 @@ class MainWindow:
         self.screen_size = screen_size
         self.cell_radius = self.screen_size / 16
         self.field = [[None,None,None,None,None,None,None,None] for _ in range(8)]
-        self.root_setup()
-        self.canvas = tkinter.Canvas(self.root, bg='black')
-        self.canvas.place(x=0, y=0, width=self.screen_size, height=self.screen_size)
-        self.get_sprites()
+        self.set_game()
 
 
-window = MainWindow(640)
-window.draw_field('white', 'brown')
-window.setup_pieces('white')
-window.setup_pieces('black')
+window = GameWindow(640)
 window.root.mainloop()
