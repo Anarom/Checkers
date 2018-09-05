@@ -5,8 +5,17 @@ from os import getcwd
 
      
 class GameWindow:
-
-                        
+    def get_moves(self,side):
+        has_moves = False
+        for row in self.field:
+            for cell in row:
+                if isinstance(cell, Piece) and cell.side == self.turn:
+                    cell.find_moves(cell.pos, [])
+                    if cell.moves:
+                        has_moves =  True
+        print('did moves')
+        return has_moves
+    
     def callback(self, event):
         row, column = self.get_field_pos(event.y, event.x)
         piece = self.field[row][column]
@@ -34,6 +43,8 @@ class GameWindow:
             self.turn = 'black'
         else:
             self.turn = 'white'
+        if not self.get_moves(self.turn):
+            self.end.game(self.turn)
 
 
     def end_game(self,loser_side):
@@ -136,6 +147,7 @@ class GameWindow:
         self.draw_field('white', 'brown')
         self.setup_pieces('white')
         self.setup_pieces('black')
+        self.get_moves('white')
 
         
     def __init__(self, screen_size):

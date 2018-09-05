@@ -34,14 +34,12 @@ class Piece:
                 if self.is_clear([current_pos[0],current_pos[1]],[row,column]):
                     if next_cell == None:
                         if depth == 0 or (self.is_king and side_dir == main_side and front_dir == main_front):
-                            self.window.set_focus_on_field(row, column)
                             self.moves.append([row,column,[]])   
                     elif type(next_cell) != type(self) and  0 <= column + side_dir < 8 and 0 <= row + front_dir//front_move < 8:
                         if self.window.field[row + front_dir][column + side_dir] == None:
                             if [row,column] not in targets:
                                 is_final = False
                                 targets.append([row,column])
-                                self.window.set_focus_on_field(row + front_dir, column + side_dir)
                                 targets = self.find_moves([row + front_dir, column + side_dir], targets, depth + 1,side_dir, front_dir, True)
         if is_final:
             self.moves.append([current_pos[0],current_pos[1], targets])
@@ -60,8 +58,8 @@ class Piece:
         self.window.canvas.delete(self.image)
         self.set_sprite(f'{self.side}_focus')
         self.focused = True
-        self.moves = []
-        self.find_moves(self.pos,[])
+        for move in self.moves:
+            self.window.set_focus_on_field(move[0],move[1])
         
     def move(self, row, column):
         dy = row - self.pos[0]
