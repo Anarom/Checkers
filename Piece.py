@@ -1,43 +1,48 @@
-
-
 class Piece:
+    def is_clear(self, pos, next_pos):
+        koef_y = abs(next_pos[0] - pos[0])//(next_pos[0] - pos[0])
+        koef_x = abs(next_pos[1] - pos[1])//(next_pos[1] - pos[1])
+        while(pos != next_pos):
+            pos[0] += koef_y
+            pos[1] += koef_x
+            if pos == next_pos:
+                break
+            if isinstance(self.window.field[pos[0]][pos[1]], Piece):
+                    return False
+        return True
+    
     def eat_pieces(self, row, column):
         for move in self.moves:
             if row == move[0] and column == move[1]:
                 for piece in move[2]:
                     self.window.piece_count[self.window.field[piece[0]][piece[1]].side] -= 1
-                    self.window.field[piece[0]][piece[1]] = None
-
-                    
-    def check_edge(self, current_pos):
-        if current_pos[1] == 0:
-            moves = [1]
-        elif current_pos[1] == 7:
-            moves = [-1]
-        else:
-            moves = [-1,1]
-        return moves
+                    self.window.field[piece[0]][piece[1]] = None               
 
 
-    def find_moves(self, current_pos, targets, depth = 0, is_final = False):
-        sides = self.check_edge(current_pos)
-        for front_move in [-1,1]:
+    def find_moves(self, current_pos, targets, depth = 0, main_side = 0, main_front = 0, is_final = False):
+        for front_move in range(-self.move_modifier,self.move_modifier + 1):
             row = current_pos[0] + front_move
-            for side_move in sides:
+            if row < 0 or front_move == 0 or row > 7 or (not self.is_king and front_move != self.front):
+                continue
+            for side_move in range(-self.move_modifier,self.move_modifier + 1):
                 column = current_pos[1] + side_move
-                if row < 0 or row > 7 or column < 0 or column > 7:
+                if column < 0 or side_move == 0 or column > 7 or abs(side_move) != abs(front_move):
                     continue
                 next_cell = self.window.field[row][column]
-                if next_cell == None:
-                    if depth == 0 and front_move == self.front:
-                        self.window.set_focus_on_field(row, column)
-                        self.moves.append([row,column,[]])
-                elif type(next_cell) != type(self) and  0 <= column + side_move < 8 and 0 <= row + front_move < 8:
-                    if self.window.field[row + front_move][column + side_move] == None:
-                        is_final = False
-                        targets.append([row,column])
-                        self.window.set_focus_on_field(row + front_move, column + side_move)
-                        targets = self.find_moves([row + front_move, column + side_move], targets, depth + 1, True)
+                side_dir = abs(side_move)//side_move
+                front_dir = abs(front_move)//front_move
+                if self.is_clear([current_pos[0],current_pos[1]],[row,column]):
+                    if next_cell == None:
+                        if depth == 0 or (self.is_king and side_dir == main_side and front_dir == main_front):
+                            self.window.set_focus_on_field(row, column)
+                            self.moves.append([row,column,[]])   
+                    elif type(next_cell) != type(self) and  0 <= column + side_dir < 8 and 0 <= row + front_dir//front_move < 8:
+                        if self.window.field[row + front_dir][column + side_dir] == None:
+                            if [row,column] not in targets:
+                                is_final = False
+                                targets.append([row,column])
+                                self.window.set_focus_on_field(row + front_dir, column + side_dir)
+                                targets = self.find_moves([row + front_dir, column + side_dir], targets, depth + 1,side_dir, front_dir, True)
         if is_final:
             self.moves.append([current_pos[0],current_pos[1], targets])
         else:
@@ -57,7 +62,6 @@ class Piece:
         self.focused = True
         self.moves = []
         self.find_moves(self.pos,[])
-
         
     def move(self, row, column):
         dy = row - self.pos[0]
@@ -70,9 +74,10 @@ class Piece:
         self.pos[0] = row
         self.pos[1] = column
         self.window.field[self.pos[0]][self.pos[1]] = self
-        if self.pos[0] == 3.5 * (self.front + 1) and not isinstance(self, King):
+        if self.pos[0] == 3.5 * (self.front + 1) and not self.is_king:
             print('king!')
-#            window.[self.pos[0]][self.pos[1] = King(self.pos[0], self.pos[1], self.side)
+            self.is_king = True
+            self.move_modifier = 7
 
 
     def set_sprite(self, side):
@@ -92,6 +97,8 @@ class Piece:
         self.window = window
         self.moves = []
         self.side = side
+        self.is_king = False
+        self.move_modifier = 1
         self.focused = False
         self.pos = [row, column]
         self.set_front(self.side)
@@ -101,7 +108,7 @@ class Piece:
     def __del__(self):
         self.window.canvas.delete(self.image)
 
-
+    
 class WhitePiece(Piece):
     def __init__(self,window, row, column):
         super().__init__(window, 'white', row, column)
