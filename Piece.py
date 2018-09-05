@@ -20,6 +20,7 @@ class Piece:
 
 
     def find_moves(self, current_pos, targets, depth = 0, main_side = 0, main_front = 0, is_final = False):
+        self.moves = []
         for front_move in range(-self.move_modifier,self.move_modifier + 1):
             row = current_pos[0] + front_move
             if row < 0 or front_move == 0 or row > 7 or (not self.is_king and front_move != self.front):
