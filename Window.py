@@ -13,7 +13,6 @@ class GameWindow:
                     cell.find_moves(cell.pos, [])
                     if cell.moves:
                         has_moves =  True
-        print('did moves')
         return has_moves
     
     def callback(self, event):
