@@ -1,6 +1,6 @@
-
-
 class Piece:
+
+
     def eat_pieces(self, row, column):
         for move in self.moves:
             if row == move[0] and column == move[1]:
@@ -70,9 +70,6 @@ class Piece:
         self.pos[0] = row
         self.pos[1] = column
         self.window.field[self.pos[0]][self.pos[1]] = self
-        if self.pos[0] == 3.5 * (self.front + 1) and not isinstance(self, King):
-            print('king!')
-#            window.[self.pos[0]][self.pos[1] = King(self.pos[0], self.pos[1], self.side)
 
 
     def set_sprite(self, side):
