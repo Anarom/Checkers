@@ -123,7 +123,8 @@ class GameWindow:
 
             
     def get_sprites(self):
-        for name in ['white', 'black', 'white_focus', 'black_focus', 'focus']:
+        for name in ['white', 'black', 'white_focus', 'black_focus', 'focus',
+                     'white_king','black_king','white_king_focus','black_king_focus']:
             image = Image.open(f'{getcwd()}\Sprites\\{name}.png')
             image = image.resize((self.screen_size // 8, self.screen_size // 8))
             image = ImageTk.PhotoImage(image)
@@ -143,7 +144,7 @@ class GameWindow:
         self.canvas = tkinter.Canvas(self.root, bg='black')
         self.canvas.place(x=0, y=0, width=self.screen_size, height=self.screen_size)
         self.get_sprites()
-        self.draw_field('white', 'brown')
+        self.draw_field('white', 'gray')
         self.setup_pieces('white')
         self.setup_pieces('black')
         self.get_moves('white')
