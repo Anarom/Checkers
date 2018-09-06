@@ -51,13 +51,19 @@ class Piece:
     
     def remove_focus(self):
         self.window.canvas.delete(self.image)
-        self.set_sprite(f'{self.side}')
+        if self.is_king:
+            self.set_sprite(f'{self.side}_king')
+        else:
+            self.set_sprite(f'{self.side}')
         self.focused = False
 
         
     def set_focus(self):
         self.window.canvas.delete(self.image)
-        self.set_sprite(f'{self.side}_focus')
+        if self.is_king:
+            self.set_sprite(f'{self.side}_king_focus')
+        else:
+            self.set_sprite(f'{self.side}_focus')
         self.focused = True
         for move in self.moves:
             self.window.set_focus_on_field(move[0],move[1])
@@ -77,6 +83,8 @@ class Piece:
             print('king!')
             self.is_king = True
             self.move_modifier = 7
+            self.window.canvas.delete(self.image)
+            self.set_sprite(self.side+'_king')
 
 
     def set_sprite(self, side):
