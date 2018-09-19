@@ -36,17 +36,14 @@ class GameWindow:
                 self.end_turn()
 
         
-    def end_turn(self):
-        for key in self.piece_count.keys():
-            if self.piece_count[key] == 0:
-                self.end_game(key)
+    def end_turn(self):       
         if self.turn == 'white':
             self.turn = 'black'
         else:
             self.turn = 'white'
         self.can_hit = False
         if not self.get_moves(self.turn):
-            self.end.game(self.turn)
+            self.end_game(self.turn)
 
 
     def end_game(self,loser_side):
@@ -54,7 +51,7 @@ class GameWindow:
             print('black won')
         else:
             print('white won')
-        self.root.destroy()
+            self.root.destroy()
 
     
     def reset_focus(self):
@@ -120,7 +117,6 @@ class GameWindow:
                     piece = WhitePiece(self, row, column)
                 else:
                     piece = BlackPiece(self, row, column)
-                self.piece_count[side] += 1
                 self.field[row][column] = piece
             start = offset[start]
 
@@ -157,7 +153,6 @@ class GameWindow:
         self.sprites = {}
         self.can_hit = False
         self.turn = 'white'
-        self.piece_count = {'white': 0, 'black': 0}
         self.focused = None
         self.screen_size = screen_size
         self.cell_radius = self.screen_size / 16
