@@ -134,6 +134,7 @@ class GameWindow:
     def root_setup(self):
         self.root = tkinter.Tk()
         self.root.geometry(f'{self.screen_size}x{self.screen_size}+250+30')
+        self.root.resizable(False,False)
         self.root.bind('<Button-1>', self.callback)
         self.root.bind('<Return>', self.callback)
         self.root.title('Checkers')
