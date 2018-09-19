@@ -5,18 +5,6 @@ from os import getcwd
 
      
 class GameWindow:
-    def get_moves(self,side):
-        has_moves = False
-        for row in self.field:
-            for cell in row:
-                if isinstance(cell, Piece) and cell.side == self.turn:
-                    can_hit = cell.find_moves(cell.pos, [])
-                    if can_hit and not self.can_hit:
-                        self.can_hit = True
-                    if cell.moves:
-                        has_moves =  True
-        return has_moves
-    
     def callback(self, event):
         row, column = self.get_field_pos(event.y, event.x)
         piece = self.field[row][column]
@@ -35,7 +23,20 @@ class GameWindow:
                 self.focused.move(row, column)
                 self.end_turn()
 
-        
+
+    def get_moves(self,side):
+        has_moves = False
+        for row in self.field:
+            for cell in row:
+                if isinstance(cell, Piece) and cell.side == self.turn:
+                    can_hit = cell.find_moves(cell.pos, [])
+                    if can_hit and not self.can_hit:
+                        self.can_hit = True
+                    if cell.moves:
+                        has_moves =  True
+        return has_moves
+
+    
     def end_turn(self):       
         if self.turn == 'white':
             self.turn = 'black'
