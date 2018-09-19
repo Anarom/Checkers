@@ -59,6 +59,24 @@ class Piece:
                     return True
             return False
 
+
+    def move(self, row, column):
+        dy = row - self.pos[0]
+        dx = column - self.pos[1]
+        y = dy * self.window.cell_radius * 2
+        x = dx * self.window.cell_radius * 2
+        self.eat_pieces(row, column)
+        self.window.canvas.move(self.image, x, y)
+        self.window.field[self.pos[0]][self.pos[1]] = None
+        self.pos[0] = row
+        self.pos[1] = column
+        self.window.field[self.pos[0]][self.pos[1]] = self
+        if self.pos[0] == 3.5 * (self.front + 1) and not self.is_king:
+            self.is_king = True
+            self.move_modifier = 7
+            self.window.canvas.delete(self.image)
+            self.set_sprite(self.side+'_king')
+
     
     def remove_focus(self):
         self.window.canvas.delete(self.image)
@@ -82,23 +100,6 @@ class Piece:
                     self.window.set_focus_on_field(move[0],move[1])
             else:
                 self.window.set_focus_on_field(move[0],move[1])
-        
-    def move(self, row, column):
-        dy = row - self.pos[0]
-        dx = column - self.pos[1]
-        y = dy * self.window.cell_radius * 2
-        x = dx * self.window.cell_radius * 2
-        self.eat_pieces(row, column)
-        self.window.canvas.move(self.image, x, y)
-        self.window.field[self.pos[0]][self.pos[1]] = None
-        self.pos[0] = row
-        self.pos[1] = column
-        self.window.field[self.pos[0]][self.pos[1]] = self
-        if self.pos[0] == 3.5 * (self.front + 1) and not self.is_king:
-            self.is_king = True
-            self.move_modifier = 7
-            self.window.canvas.delete(self.image)
-            self.set_sprite(self.side+'_king')
 
 
     def set_sprite(self, side):
