@@ -160,5 +160,5 @@ class GameWindow:
         self.set_game()
 
 
-window = GameWindow(640)
-window.root.mainloop()
+game_window = GameWindow(640)
+game_window.root.mainloop()
