@@ -10,7 +10,9 @@ class GameWindow:
         for row in self.field:
             for cell in row:
                 if isinstance(cell, Piece) and cell.side == self.turn:
-                    cell.find_moves(cell.pos, [])
+                    can_hit = cell.find_moves(cell.pos, [])
+                    if can_hit and not self.can_hit:
+                        self.can_hit = True
                     if cell.moves:
                         has_moves =  True
         return has_moves
@@ -23,7 +25,7 @@ class GameWindow:
                 if piece.side == self.turn:
                     if piece.focused == False:
                         self.reset_focus()
-                        piece.set_focus()
+                        piece.set_focus(self.can_hit)
                         self.focused = piece
                     else:
                         self.reset_focus()
@@ -42,6 +44,7 @@ class GameWindow:
             self.turn = 'black'
         else:
             self.turn = 'white'
+        self.can_hit = False
         if not self.get_moves(self.turn):
             self.end.game(self.turn)
 
@@ -152,6 +155,7 @@ class GameWindow:
         
     def __init__(self, screen_size):
         self.sprites = {}
+        self.can_hit = False
         self.turn = 'white'
         self.piece_count = {'white': 0, 'black': 0}
         self.focused = None
