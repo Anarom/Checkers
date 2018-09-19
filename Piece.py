@@ -4,11 +4,13 @@ class Piece:
         koef_x = abs(next_pos[1] - pos[1])//(next_pos[1] - pos[1])
         if pos[0] + koef_y == next_pos[0] and pos[1] + koef_x == next_pos[1]:
             return True
+        pos[0] += koef_y
+        pos[1] += koef_x
         while(pos != next_pos):
-            pos[0] += koef_y
-            pos[1] += koef_x
             if isinstance(self.window.field[pos[0]][pos[1]], Piece):
                 return False
+            pos[0] += koef_y
+            pos[1] += koef_x
         return True
 
     
@@ -34,6 +36,8 @@ class Piece:
                 side_dir = abs(side_move)//side_move
                 front_dir = abs(front_move)//front_move
                 if self.is_clear([current_pos[0],current_pos[1]],[row,column]):
+                    if self.is_king:
+                        print(front_move,side_move,self.pos)
                     if next_cell == None:
                         if (depth == 0 or (self.is_king and side_dir == main_side and front_dir == main_front)) and not(not self.is_king and front_move != self.front):
                             if self.is_king and depth != 0:
@@ -45,6 +49,7 @@ class Piece:
                             if [row,column] not in targets:
                                 is_final = False
                                 targets.append([row,column])
+                                print('look at',row + front_dir,column + side_dir)
                                 targets = self.find_moves([row + front_dir, column + side_dir], targets, depth + 1,side_dir, front_dir, True)
         if is_final:
             self.moves.append([current_pos[0],current_pos[1], targets])
