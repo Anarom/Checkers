@@ -2,14 +2,15 @@ class Piece:
     def is_clear(self, pos, next_pos):
         koef_y = abs(next_pos[0] - pos[0])//(next_pos[0] - pos[0])
         koef_x = abs(next_pos[1] - pos[1])//(next_pos[1] - pos[1])
+        if pos[0] + koef_y == next_pos[0] and pos[1] + koef_x == next_pos[1]:
+            return True
         while(pos != next_pos):
             pos[0] += koef_y
             pos[1] += koef_x
-            if pos == next_pos:
-                break
             if isinstance(self.window.field[pos[0]][pos[1]], Piece):
-                    return False
+                return False
         return True
+
     
     def eat_pieces(self, row, column):
         for move in self.moves:
@@ -23,7 +24,7 @@ class Piece:
         self.moves = []
         for front_move in range(-self.move_modifier,self.move_modifier + 1):
             row = current_pos[0] + front_move
-            if row < 0 or front_move == 0 or row > 7 or (not self.is_king and front_move != self.front):
+            if row < 0 or front_move == 0 or row > 7:
                 continue
             for side_move in range(-self.move_modifier,self.move_modifier + 1):
                 column = current_pos[1] + side_move
@@ -34,9 +35,12 @@ class Piece:
                 front_dir = abs(front_move)//front_move
                 if self.is_clear([current_pos[0],current_pos[1]],[row,column]):
                     if next_cell == None:
-                        if depth == 0 or (self.is_king and side_dir == main_side and front_dir == main_front):
-                            self.moves.append([row,column,[]])   
-                    elif type(next_cell) != type(self) and  0 <= column + side_dir < 8 and 0 <= row + front_dir//front_move < 8:
+                        if (depth == 0 or (self.is_king and side_dir == main_side and front_dir == main_front)) and not(not self.is_king and front_move != self.front):
+                            if self.is_king and depth != 0:
+                                self.moves.append([row,column,targets])
+                            else:
+                                self.moves.append([row,column,[]])
+                    elif type(next_cell) != type(self) and  0 <= column + side_dir < 8 and 0 <= row + front_dir < 8:
                         if self.window.field[row + front_dir][column + side_dir] == None:
                             if [row,column] not in targets:
                                 is_final = False
@@ -46,7 +50,13 @@ class Piece:
             self.moves.append([current_pos[0],current_pos[1], targets])
         else:
             self.window.remove_focus_on_field(current_pos[0],current_pos[1])
-        return targets
+        if depth != 0:
+            return targets
+        else:
+            for move in self.moves:
+                if move[2]:
+                    return True
+            return False
 
     
     def remove_focus(self):
@@ -58,7 +68,7 @@ class Piece:
         self.focused = False
 
         
-    def set_focus(self):
+    def set_focus(self,can_hit):
         self.window.canvas.delete(self.image)
         if self.is_king:
             self.set_sprite(f'{self.side}_king_focus')
@@ -66,7 +76,11 @@ class Piece:
             self.set_sprite(f'{self.side}_focus')
         self.focused = True
         for move in self.moves:
-            self.window.set_focus_on_field(move[0],move[1])
+            if can_hit:
+                if move[2]:
+                    self.window.set_focus_on_field(move[0],move[1])
+            else:
+                self.window.set_focus_on_field(move[0],move[1])
         
     def move(self, row, column):
         dy = row - self.pos[0]
