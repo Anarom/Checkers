@@ -18,7 +18,6 @@ class Piece:
         for move in self.moves:
             if row == move[0] and column == move[1]:
                 for piece in move[2]:
-                    self.window.piece_count[self.window.field[piece[0]][piece[1]].side] -= 1
                     self.window.field[piece[0]][piece[1]] = None               
 
 
@@ -36,8 +35,6 @@ class Piece:
                 side_dir = abs(side_move)//side_move
                 front_dir = abs(front_move)//front_move
                 if self.is_clear([current_pos[0],current_pos[1]],[row,column]):
-                    if self.is_king:
-                        print(front_move,side_move,self.pos)
                     if next_cell == None:
                         if (depth == 0 or (self.is_king and side_dir == main_side and front_dir == main_front)) and not(not self.is_king and front_move != self.front):
                             if self.is_king and depth != 0:
@@ -49,7 +46,6 @@ class Piece:
                             if [row,column] not in targets:
                                 is_final = False
                                 targets.append([row,column])
-                                print('look at',row + front_dir,column + side_dir)
                                 targets = self.find_moves([row + front_dir, column + side_dir], targets, depth + 1,side_dir, front_dir, True)
         if is_final:
             self.moves.append([current_pos[0],current_pos[1], targets])
@@ -99,7 +95,6 @@ class Piece:
         self.pos[1] = column
         self.window.field[self.pos[0]][self.pos[1]] = self
         if self.pos[0] == 3.5 * (self.front + 1) and not self.is_king:
-            print('king!')
             self.is_king = True
             self.move_modifier = 7
             self.window.canvas.delete(self.image)
