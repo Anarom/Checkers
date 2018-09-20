@@ -49,7 +49,7 @@ class GameWindow:
             print('black won')
         else:
             print('white won')
-            self.root.destroy()
+        self.root.destroy()
 
     def reset_focus(self):
         for row in range(len(self.field)):
