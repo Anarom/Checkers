@@ -1,5 +1,5 @@
 class Piece:
-    def is_clear(self, pos, next_pos):
+    def line_is_clear(self, pos, next_pos):
         dy = abs(next_pos[0] - pos[0]) // (next_pos[0] - pos[0])
         dx = abs(next_pos[1] - pos[1]) // (next_pos[1] - pos[1])
         if pos[0] + dy == next_pos[0] and pos[1] + dx == next_pos[1]:
@@ -32,7 +32,7 @@ class Piece:
                 next_cell = self.window.field[row][column]
                 vertical_dir = abs(horizontal) // horizontal
                 horizontal_dir = abs(vertical) // vertical
-                if self.is_clear([current_pos[0], current_pos[1]], [row, column]):
+                if self.line_is_clear([current_pos[0], current_pos[1]], [row, column]):
                     if not next_cell:
                         if (depth == 0 or (
                                 self.is_king and vertical_dir == main_side and horizontal_dir == main_front)) and not (
@@ -122,7 +122,10 @@ class Piece:
         self.set_sprite(self.side)
 
     def __del__(self):
-        self.window.canvas.delete(self.image)
+        try:
+            self.window.canvas.delete(self.image)
+        except:
+            pass
 
 
 class WhitePiece(Piece):
