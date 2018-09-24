@@ -20,7 +20,8 @@ class Piece:
                     self.window.field[piece[0]][piece[1]] = None
 
     def find_moves(self, current_pos, targets, depth=0, main_side=0, main_front=0, is_final=False):
-        self.moves = []
+        if depth == 0:
+            self.moves = []
         for vertical in range(-self.move_modifier, self.move_modifier + 1):
             row = current_pos[0] + vertical
             if row < 0 or vertical == 0 or row > 7:
@@ -29,6 +30,8 @@ class Piece:
                 column = current_pos[1] + horizontal
                 if column < 0 or horizontal == 0 or column > 7 or abs(horizontal) != abs(vertical):
                     continue
+                if depth == 0:
+                    targets = []
                 next_cell = self.window.field[row][column]
                 vertical_dir = abs(horizontal) // horizontal
                 horizontal_dir = abs(vertical) // vertical
@@ -46,14 +49,15 @@ class Piece:
                             if [row, column] not in targets:
                                 is_final = False
                                 targets.append([row, column])
-                                targets = self.find_moves([row + horizontal_dir, column + vertical_dir], targets,
-                                                          depth + 1,
-                                                          vertical_dir, horizontal_dir, True)
+                                self.find_moves([row + horizontal_dir, column + vertical_dir], targets,
+                                                depth + 1,
+                                                vertical_dir, horizontal_dir, True)
+                                
         if is_final:
-            self.moves.append([current_pos[0], current_pos[1], targets])
+            self.moves.append([current_pos[0], current_pos[1], targets.copy()])
         else:
             self.window.remove_focus_on_field(current_pos[0], current_pos[1])
-        if depth != 0:
+        if not depth == 0:
             return targets
         else:
             for move in self.moves:
