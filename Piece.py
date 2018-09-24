@@ -1,64 +1,70 @@
 class Piece:
-
+    def line_is_clear(self, pos, next_pos):
+        dy = abs(next_pos[0] - pos[0]) // (next_pos[0] - pos[0])
+        dx = abs(next_pos[1] - pos[1]) // (next_pos[1] - pos[1])
+        if pos[0] + dy == next_pos[0] and pos[1] + dx == next_pos[1]:
+            return True
+        pos[0] += dy
+        pos[1] += dx
+        while pos != next_pos:
+            if isinstance(self.window.field[pos[0]][pos[1]], Piece):
+                return False
+            pos[0] += dy
+            pos[1] += dx
+        return True
 
     def eat_pieces(self, row, column):
         for move in self.moves:
             if row == move[0] and column == move[1]:
                 for piece in move[2]:
-                    self.window.piece_count[self.window.field[piece[0]][piece[1]].side] -= 1
                     self.window.field[piece[0]][piece[1]] = None
 
-                    
-    def check_edge(self, current_pos):
-        if current_pos[1] == 0:
-            moves = [1]
-        elif current_pos[1] == 7:
-            moves = [-1]
-        else:
-            moves = [-1,1]
-        return moves
-
-
-    def find_moves(self, current_pos, targets, depth = 0, is_final = False):
-        sides = self.check_edge(current_pos)
-        for front_move in [-1,1]:
-            row = current_pos[0] + front_move
-            for side_move in sides:
-                column = current_pos[1] + side_move
-                if row < 0 or row > 7 or column < 0 or column > 7:
+    def find_moves(self, current_pos, targets, depth=0, main_side=0, main_front=0, is_final=False):
+        if depth == 0:
+            self.moves = []
+        for vertical in range(-self.move_modifier, self.move_modifier + 1):
+            row = current_pos[0] + vertical
+            if row < 0 or vertical == 0 or row > 7:
+                continue
+            for horizontal in range(-self.move_modifier, self.move_modifier + 1):
+                column = current_pos[1] + horizontal
+                if column < 0 or horizontal == 0 or column > 7 or abs(horizontal) != abs(vertical):
                     continue
+                if depth == 0:
+                    targets = []
                 next_cell = self.window.field[row][column]
-                if next_cell == None:
-                    if depth == 0 and front_move == self.front:
-                        self.window.set_focus_on_field(row, column)
-                        self.moves.append([row,column,[]])
-                elif type(next_cell) != type(self) and  0 <= column + side_move < 8 and 0 <= row + front_move < 8:
-                    if self.window.field[row + front_move][column + side_move] == None:
-                        is_final = False
-                        targets.append([row,column])
-                        self.window.set_focus_on_field(row + front_move, column + side_move)
-                        targets = self.find_moves([row + front_move, column + side_move], targets, depth + 1, True)
+                vertical_dir = abs(horizontal) // horizontal
+                horizontal_dir = abs(vertical) // vertical
+                if self.line_is_clear([current_pos[0], current_pos[1]], [row, column]):
+                    if not next_cell:
+                        if (depth == 0 or (
+                                self.is_king and vertical_dir == main_side and horizontal_dir == main_front)) and not (
+                                not self.is_king and vertical != self.front):
+                            if self.is_king and depth != 0:
+                                self.moves.append([row, column, targets])
+                            else:
+                                self.moves.append([row, column, []])
+                    elif type(next_cell) != type(self) and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
+                        if not self.window.field[row + horizontal_dir][column + vertical_dir]:
+                            if [row, column] not in targets:
+                                is_final = False
+                                targets.append([row, column])
+                                self.find_moves([row + horizontal_dir, column + vertical_dir], targets,
+                                                depth + 1,
+                                                vertical_dir, horizontal_dir, True)
+                                
         if is_final:
-            self.moves.append([current_pos[0],current_pos[1], targets])
+            self.moves.append([current_pos[0], current_pos[1], targets.copy()])
         else:
-            self.window.remove_focus_on_field(current_pos[0],current_pos[1])
-        return targets
+            self.window.remove_focus_on_field(current_pos[0], current_pos[1])
+        if not depth == 0:
+            return targets
+        else:
+            for move in self.moves:
+                if move[2]:
+                    return True
+            return False
 
-    
-    def remove_focus(self):
-        self.window.canvas.delete(self.image)
-        self.set_sprite(f'{self.side}')
-        self.focused = False
-
-        
-    def set_focus(self):
-        self.window.canvas.delete(self.image)
-        self.set_sprite(f'{self.side}_focus')
-        self.focused = True
-        self.moves = []
-        self.find_moves(self.pos,[])
-
-        
     def move(self, row, column):
         dy = row - self.pos[0]
         dx = column - self.pos[1]
@@ -70,41 +76,67 @@ class Piece:
         self.pos[0] = row
         self.pos[1] = column
         self.window.field[self.pos[0]][self.pos[1]] = self
+        if self.pos[0] == 3.5 * (self.front + 1) and not self.is_king:
+            self.is_king = True
+            self.move_modifier = 7
+            self.window.canvas.delete(self.image)
+            self.set_sprite(self.side + '_king')
 
+    def remove_focus(self):
+        self.window.canvas.delete(self.image)
+        if self.is_king:
+            self.set_sprite(f'{self.side}_king')
+        else:
+            self.set_sprite(f'{self.side}')
+        self.focused = False
+
+    def set_focus(self, can_hit):
+        self.window.canvas.delete(self.image)
+        if self.is_king:
+            self.set_sprite(f'{self.side}_king_focus')
+        else:
+            self.set_sprite(f'{self.side}_focus')
+        self.focused = True
+        for move in self.moves:
+            if can_hit:
+                if move[2]:
+                    self.window.set_focus_on_field(move[0], move[1])
+            else:
+                self.window.set_focus_on_field(move[0], move[1])
 
     def set_sprite(self, side):
-         y,x = self.window.get_screen_pos(self.pos[0], self.pos[1])
-         sprite = self.window.sprites[side]
-         self.image = self.window.canvas.create_image(x, y, image=sprite)
+        y, x = self.window.get_screen_pos(self.pos[0], self.pos[1])
+        sprite = self.window.sprites[side]
+        self.image = self.window.canvas.create_image(x, y, image=sprite)
 
-
-    def set_front(self, side):
-        if side == 'white':
+    def __init__(self, window, side, row, column):
+        self.front = None
+        self.image = None
+        self.is_king = False
+        self.focused = False
+        self.moves = []
+        self.move_modifier = 1
+        self.window = window
+        self.side = side
+        if self.side == 'white':
             self.front = -1
         else:
             self.front = 1
-
-
-    def __init__(self, window, side, row, column):
-        self.window = window
-        self.moves = []
-        self.side = side
-        self.focused = False
         self.pos = [row, column]
-        self.set_front(self.side)
         self.set_sprite(self.side)
 
-
     def __del__(self):
-        self.window.canvas.delete(self.image)
+        try:
+            self.window.canvas.delete(self.image)
+        except:
+            pass
 
 
 class WhitePiece(Piece):
-    def __init__(self,window, row, column):
+    def __init__(self, window, row, column):
         super().__init__(window, 'white', row, column)
 
-        
+
 class BlackPiece(Piece):
-    def __init__(self,window, row, column):
+    def __init__(self, window, row, column):
         super().__init__(window, 'black', row, column)
-        
