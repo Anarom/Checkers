@@ -149,7 +149,7 @@ class GameWindow:
         self.cell_radius = self.screen_size / 16
         self.field = [[None, None, None, None, None, None, None, None] for _ in range(8)]
         self.set_game()
+        self.root.mainloop()
 
 
 game_window = GameWindow(640)
-game_window.root.mainloop()

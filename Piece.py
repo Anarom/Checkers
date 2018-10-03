@@ -41,18 +41,18 @@ class Piece:
                                 self.is_king and vertical_dir == main_side and horizontal_dir == main_front)) and not (
                                 not self.is_king and vertical != self.front):
                             if self.is_king and depth != 0:
-                                self.moves.append([row, column, targets])
+                                self.moves.append([row, column, targets.copy()])
                             else:
                                 self.moves.append([row, column, []])
-                    elif type(next_cell) != type(self) and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
+                    elif type(next_cell) != type(
+                            self) and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
                         if not self.window.field[row + horizontal_dir][column + vertical_dir]:
                             if [row, column] not in targets:
                                 is_final = False
                                 targets.append([row, column])
-                                self.find_moves([row + horizontal_dir, column + vertical_dir], targets,
-                                                depth + 1,
+                                self.find_moves([row + horizontal_dir, column + vertical_dir], targets, depth + 1,
                                                 vertical_dir, horizontal_dir, True)
-                                
+                                targets.pop(-1)
         if is_final:
             self.moves.append([current_pos[0], current_pos[1], targets.copy()])
         else:
@@ -97,9 +97,13 @@ class Piece:
         else:
             self.set_sprite(f'{self.side}_focus')
         self.focused = True
+        max_hits = 1
+        for move in self.moves:
+            if len(move[2]) > max_hits:
+                max_hits = len(move[2])
         for move in self.moves:
             if can_hit:
-                if move[2]:
+                if len(move[2]) == max_hits:
                     self.window.set_focus_on_field(move[0], move[1])
             else:
                 self.window.set_focus_on_field(move[0], move[1])
