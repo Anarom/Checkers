@@ -5,6 +5,29 @@ from os import getcwd
 
 
 class GameWindow:
+    def undo_move(self, move):
+        self.field[move[1][0]][move[1][1]].change_pos(move[0][0],move[0][1])
+        if move[2]:
+                self.field[move[0][0]][move[0][1]].reset_king()
+        self.move_history.pop()
+        
+    def undo_hit(self, hits):
+        for hit in hits:
+            if hit[2] < 2:
+                self.field[hit[0]][hit[1]] = WhitePiece(self, hit[0], hit[1])
+            else:
+                self.field[hit[0]][hit[1]] = BlackPiece(self, hit[0], hit[1])
+            if hit[2] % 2 == 1:
+                self.field[hit[0]][hit[1]].set_king()
+        self.hit_history.pop()
+        
+    def undo_turn(self, event):
+        if self.move_history:
+            self.reset_focus()
+            self.undo_move(self.move_history[-1])
+            self.undo_hit(self.hit_history[-1])
+            self.end_turn()
+        
     def callback(self, event):
         row, column = self.get_field_pos(event.y, event.x)
         cell = self.field[row][column]
@@ -50,6 +73,18 @@ class GameWindow:
         else:
             print('white won')
         self.root.destroy()
+
+    def set_piece_modifier(self, piece):
+        if piece.side == 'white':
+            if not piece.is_king:
+                return 0
+            else:
+                return 1
+        else:
+            if not piece.is_king:
+                return 2
+            else:
+                return 3
 
     def reset_focus(self):
         for row in range(len(self.field)):
@@ -122,11 +157,12 @@ class GameWindow:
 
     def root_setup(self):
         self.root = tkinter.Tk()
+        self.root.title('Checkers')
         self.root.geometry(f'{self.screen_size}x{self.screen_size}+250+30')
         self.root.resizable(False, False)
         self.root.bind('<Button-1>', self.callback)
         self.root.bind('<Return>', self.callback)
-        self.root.title('Checkers')
+        self.root.bind('r', self.undo_turn)
 
     def set_game(self):
         self.root_setup()
@@ -143,6 +179,8 @@ class GameWindow:
         self.canvas = None
         self.focused = None
         self.can_hit = False
+        self.move_history = []
+        self.hit_history = []
         self.sprites = {}
         self.turn = 'white'
         self.screen_size = screen_size
@@ -150,6 +188,5 @@ class GameWindow:
         self.field = [[None, None, None, None, None, None, None, None] for _ in range(8)]
         self.set_game()
         self.root.mainloop()
-
-
-game_window = GameWindow(640)
+        
+game = GameWindow(640)

@@ -13,12 +13,6 @@ class Piece:
             pos[1] += dx
         return True
 
-    def eat_pieces(self, row, column):
-        for move in self.moves:
-            if row == move[0] and column == move[1]:
-                for piece in move[2]:
-                    self.window.field[piece[0]][piece[1]] = None
-
     def find_moves(self, current_pos, targets, depth=0, main_side=0, main_front=0, is_final=False):
         if depth == 0:
             self.moves = []
@@ -65,30 +59,43 @@ class Piece:
                     return True
             return False
 
-    def move(self, row, column):
+    def eat_pieces(self, row, column):
+        eaten = []
+        for move in self.moves:
+            if row == move[0] and column == move[1]:
+                for piece in move[2]:
+                    if self.window.field[piece[0]][piece[1]].side == 'white':
+                        if not self.window.field[piece[0]][piece[1]].is_king:
+                            modifier = 0
+                        else:
+                            modifier = 1
+                    else:
+                        if not self.window.field[piece[0]][piece[1]].is_king:
+                            modifier = 2
+                        else:
+                            modifier = 3
+                    eaten.append([piece[0],piece[1],modifier])
+                    self.window.field[piece[0]][piece[1]] = None
+        return eaten
+    
+    def change_pos(self, row , column):
         dy = row - self.pos[0]
         dx = column - self.pos[1]
         y = dy * self.window.cell_radius * 2
         x = dx * self.window.cell_radius * 2
-        self.eat_pieces(row, column)
         self.window.canvas.move(self.image, x, y)
         self.window.field[self.pos[0]][self.pos[1]] = None
         self.pos[0] = row
         self.pos[1] = column
         self.window.field[self.pos[0]][self.pos[1]] = self
+                                                      
+    def move(self, row, column):
+        self.window.move_history.append([self.pos.copy(), [row,column], False])
+        self.window.hit_history.append(self.eat_pieces(row, column))
+        self.change_pos(row, column)
         if self.pos[0] == 3.5 * (self.front + 1) and not self.is_king:
-            self.is_king = True
-            self.move_modifier = 7
-            self.window.canvas.delete(self.image)
-            self.set_sprite(self.side + '_king')
-
-    def remove_focus(self):
-        self.window.canvas.delete(self.image)
-        if self.is_king:
-            self.set_sprite(f'{self.side}_king')
-        else:
-            self.set_sprite(f'{self.side}')
-        self.focused = False
+            self.window.move_history[-1][2] = True
+            self.set_king()
 
     def set_focus(self, can_hit):
         self.window.canvas.delete(self.image)
@@ -108,10 +115,30 @@ class Piece:
             else:
                 self.window.set_focus_on_field(move[0], move[1])
 
+    def remove_focus(self):
+        self.window.canvas.delete(self.image)
+        if self.is_king:
+            self.set_sprite(f'{self.side}_king')
+        else:
+            self.set_sprite(f'{self.side}')
+        self.focused = False
+
     def set_sprite(self, side):
         y, x = self.window.get_screen_pos(self.pos[0], self.pos[1])
         sprite = self.window.sprites[side]
         self.image = self.window.canvas.create_image(x, y, image=sprite)
+
+    def set_king(self):
+        self.is_king = True
+        self.move_modifier = 7
+        self.window.canvas.delete(self.image)
+        self.set_sprite(self.side + '_king')
+
+    def reset_king(self):
+        self.is_king = False
+        self.move_modifier = 1
+        self.window.canvas.delete(self.image)
+        self.set_sprite(self.side)        
 
     def __init__(self, window, side, row, column):
         self.front = None
