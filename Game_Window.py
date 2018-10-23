@@ -162,7 +162,7 @@ class GameWindow:
         self.root.resizable(False, False)
         self.root.bind('<Button-1>', self.callback)
         self.root.bind('<Return>', self.callback)
-        self.root.bind('r', self.undo_turn)
+        self.root.bind('<Button-3>', self.undo_turn)
 
     def set_game(self):
         self.root_setup()
