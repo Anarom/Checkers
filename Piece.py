@@ -38,8 +38,7 @@ class Piece:
                                 self.moves.append([row, column, targets.copy()])
                             else:
                                 self.moves.append([row, column, []])
-                    elif type(next_cell) != type(
-                            self) and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
+                    elif type(next_cell) != type(self) and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
                         if not self.window.field[row + horizontal_dir][column + vertical_dir]:
                             if [row, column] not in targets:
                                 is_final = False
@@ -97,23 +96,26 @@ class Piece:
             self.window.move_history[-1][2] = True
             self.set_king()
 
-    def set_focus(self, can_hit):
+    def validate_moves(self, can_hit):
+        max_hits = 1
+        for move in self.moves:
+            if len(move[2]) > max_hits:
+                max_hits = len(move[2])
+            for move in self.moves.copy():
+                if can_hit:
+                    if len(move[2]) < max_hits:
+                        self.moves.remove(move)
+                        continue
+
+    def set_focus(self):
         self.window.canvas.delete(self.image)
         if self.is_king:
             self.set_sprite(f'{self.side}_king_focus')
         else:
             self.set_sprite(f'{self.side}_focus')
         self.focused = True
-        max_hits = 1
         for move in self.moves:
-            if len(move[2]) > max_hits:
-                max_hits = len(move[2])
-        for move in self.moves:
-            if can_hit:
-                if len(move[2]) == max_hits:
-                    self.window.set_focus_on_field(move[0], move[1])
-            else:
-                self.window.set_focus_on_field(move[0], move[1])
+            self.window.set_focus_on_field(move[0], move[1])
 
     def remove_focus(self):
         self.window.canvas.delete(self.image)

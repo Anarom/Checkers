@@ -31,12 +31,13 @@ class GameWindow:
     def callback(self, event):
         row, column = self.get_field_pos(event.y, event.x)
         cell = self.field[row][column]
+
         if cell:
             if isinstance(cell, Piece):
                 if cell.side == self.turn:
                     if not cell.focused:
                         self.reset_focus()
-                        cell.set_focus(self.can_hit)
+                        cell.set_focus()
                         self.focused = cell
                     else:
                         self.reset_focus()
@@ -48,14 +49,18 @@ class GameWindow:
 
     def get_moves(self):
         has_moves = False
-        for row in self.field:
-            for cell in row:
-                if isinstance(cell, Piece) and cell.side == self.turn:
-                    can_hit = cell.find_moves(cell.pos, [])
-                    if can_hit and not self.can_hit:
-                        self.can_hit = True
-                    if cell.moves:
-                        has_moves = True
+        can_hit = False
+        for iteration in range(2):
+            for row in self.field:
+                for cell in row:
+                    if isinstance(cell, Piece) and cell.side == self.turn:
+                        if not iteration:
+                            can_hit = cell.find_moves(cell.pos, []) or can_hit
+                            if cell.moves:
+                                has_moves = True
+                        else:
+                            cell.validate_moves(can_hit)
+                            
         return has_moves
 
     def end_turn(self):
@@ -74,17 +79,6 @@ class GameWindow:
             print('white won')
         self.root.destroy()
 
-    def set_piece_modifier(self, piece):
-        if piece.side == 'white':
-            if not piece.is_king:
-                return 0
-            else:
-                return 1
-        else:
-            if not piece.is_king:
-                return 2
-            else:
-                return 3
 
     def reset_focus(self):
         for row in range(len(self.field)):
@@ -178,7 +172,6 @@ class GameWindow:
         self.root = None
         self.canvas = None
         self.focused = None
-        self.can_hit = False
         self.move_history = []
         self.hit_history = []
         self.sprites = {}
