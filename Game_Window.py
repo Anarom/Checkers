@@ -9,11 +9,12 @@ class GameWindow:
         self.active_client = self.client2 if self.active_client == self.client1 else self.client1
         if self.move_history and not undo:
             move = self.move_history[-1]
+            if not move:
+                move = self.move_history[0]
             for target in move.targets:
                 for piece in self.active_client.pieces:
                     if target[:-1] == piece.pos:
                         self.active_client.pieces.remove(piece)
-        self.canvas.update()
         if not self.active_client.get_turn():
             self.end_game()
 
@@ -57,8 +58,8 @@ class GameWindow:
 
     def set_game(self):
         self.get_field('white', 'gray')
-        self.client1 = PlayerClient(self, 'white')
-        self.client2 = AIClient(self, 'black')       
+        self.client1 = AIClient(self, 'white')
+        self.client2 = PlayerClient(self, 'black')       
         self.active_client = self.client1
         self.active_client.get_turn()
 

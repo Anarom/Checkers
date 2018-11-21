@@ -29,6 +29,7 @@ class Client:
     def get_turn(self):
         has_moves = self.get_moves()
         if isinstance(self, PlayerClient):
+            print(self.window.move_history)
             self.click1 = self.window.root.bind('<Button-1>', self.callback)
             self.click2 = self.window.root.bind('<Button-3>', self.undo_turn)
         elif has_moves:
@@ -71,14 +72,16 @@ class PlayerClient(Client):
                     self.window.end_turn()
         
     def undo_turn(self, event):
-        iter = 2
-        if isinstance(self.window.client1, PlayerClient) or isinstance(self.window.client2, PlayerClient): 
-            iter = 1
-        for __ in range(iter):
-            self.reset_focus()
-            if not self.window.move_history:
-                return 0
+        self.reset_focus()
+        if not self.window.move_history:
+            return 0
+        iterate = 1
+        if isinstance(self.window.client1, PlayerClient) ^ isinstance(self.window.client2, PlayerClient):
+            iterate = 2
+        for count in range(iterate):
             move = self.window.move_history[-1]
+            if not move:
+                move = self.move_history[0]
             self.window.field[move.y1][move.x1].change_pos(move.y0,move.x0)
             if move.king:
                 self.window.field[move.y0][move.x0].reset_king()
@@ -93,8 +96,9 @@ class PlayerClient(Client):
                 if target[2] % 2 == 1:
                     self.window.field[target[0]][target[1]].set_king()
             self.window.move_history.pop()
-        if iter == 1:
-            self.window.end_turn(True)
+            if iterate == 2 and count == 0:
+                self.window.active_client = self.window.client2 if self.window.active_client == self.window.client1 else self.window.client1
+        self.window.end_turn(True)
 
     def reset_focus(self):
         for piece in self.pieces:
