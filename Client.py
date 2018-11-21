@@ -1,4 +1,5 @@
 from Piece import Piece, get_screen_pos
+from random import randint
 
 class Client:
     
@@ -70,25 +71,30 @@ class PlayerClient(Client):
                     self.window.end_turn()
         
     def undo_turn(self, event):
-        self.reset_focus()
-        if not self.window.move_history:
-            return 0
-        move = self.window.move_history[-1]
-        self.window.field[move.y1][move.x1].change_pos(move.y0,move.x0)
-        if move.king:
+        iter = 2
+        if isinstance(self.window.client1, PlayerClient) or isinstance(self.window.client2, PlayerClient): 
+            iter = 1
+        for __ in range(iter):
+            self.reset_focus()
+            if not self.window.move_history:
+                return 0
+            move = self.window.move_history[-1]
+            self.window.field[move.y1][move.x1].change_pos(move.y0,move.x0)
+            if move.king:
                 self.window.field[move.y0][move.x0].reset_king()
-        for target in move.targets:
-            if target[2] < 2:
-                self.window.field[target[0]][target[1]] = Piece(self.window, 'white',
-                                                                target[0], target[1])
-            else:
-                self.window.field[target[0]][target[1]] = Piece(self.window, 'black',
-                                                                target[0], target[1])
-            self.window.active_client.pieces.append(self.window.field[target[0]][target[1]])
-            if target[2] % 2 == 1:
-                self.window.field[target[0]][target[1]].set_king()
-        self.window.move_history.pop()
-        self.window.end_turn(True)
+            for target in move.targets:
+                if target[2] < 2:
+                    self.window.field[target[0]][target[1]] = Piece(self.window, 'white',
+                                                                    target[0], target[1])
+                else:
+                    self.window.field[target[0]][target[1]] = Piece(self.window, 'black',
+                                                                    target[0], target[1])
+                self.window.active_client.pieces.append(self.window.field[target[0]][target[1]])
+                if target[2] % 2 == 1:
+                    self.window.field[target[0]][target[1]].set_king()
+            self.window.move_history.pop()
+        if iter == 1:
+            self.window.end_turn(True)
 
     def reset_focus(self):
         for piece in self.pieces:
@@ -135,9 +141,17 @@ class PlayerClient(Client):
 
 class AIClient(Client):
 
+    def do_move(self, move):
+        for piece in self.pieces:
+            if piece.pos == [move.y0, move.x0]:
+                break
+        piece.move(move.y1, move.x1)
+        self.window.end_turn()
+
     def process(self):
         self.moves = []
         for piece in self.pieces:
-            if piece.moves:
-                print(piece.moves)
-        self.window.end_turn()
+            for move in piece.moves:
+                self.moves.append(move)
+        number = randint(0,len(self.moves)-1)
+        self.do_move(self.moves[number])
