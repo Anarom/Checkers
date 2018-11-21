@@ -27,10 +27,13 @@ class Client:
         return pieces
         
     def get_turn(self):
+        has_moves = self.get_moves()
         if isinstance(self, PlayerClient):
             self.click1 = self.window.root.bind('<Button-1>', self.callback)
             self.click2 = self.window.root.bind('<Button-3>', self.undo_turn)
-        return self.get_moves()
+        elif has_moves:
+            self.process()
+        return has_moves
 
     def get_moves(self):
         has_moves = False
@@ -76,9 +79,9 @@ class PlayerClient(Client):
     def undo_hit(self, hits):
         for hit in hits:
             if hit[2] < 2:
-                self.window.field[hit[0]][hit[1]] = WhitePiece(self, hit[0], hit[1])
+                self.window.field[hit[0]][hit[1]] = Piece(self.window, self.side, hit[0], hit[1])
             else:
-                self.window.field[hit[0]][hit[1]] = BlackPiece(self, hit[0], hit[1])
+                self.window.field[hit[0]][hit[1]] = Piece(self.window, self.side, hit[0], hit[1])
             if hit[2] % 2 == 1:
                 self.window.field[hit[0]][hit[1]].set_king()
         self.window.hit_history.pop()

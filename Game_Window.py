@@ -8,10 +8,11 @@ class GameWindow:
 
     def end_turn(self):
         self.active_client = self.client2 if self.active_client == self.client1 else self.client1
-        for cell in self.hit_history[-1]:
-            for piece in self.active_client.pieces:
-                if cell[:-1] == piece.pos:
-                    self.active_client.pieces.remove(piece)
+        if self.hit_history:
+            for cell in self.hit_history[-1]:
+                for piece in self.active_client.pieces:
+                    if cell[:-1] == piece.pos:
+                        self.active_client.pieces.remove(piece)
         if not self.active_client.get_turn():
             self.end_game()
 
