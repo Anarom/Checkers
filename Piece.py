@@ -1,3 +1,9 @@
+def get_screen_pos(cell_radius, row, column):
+        x = (2 * column + 1) * cell_radius
+        y = (2 * row + 1) * cell_radius
+        return y, x
+    
+
 class Piece:
     def line_is_clear(self, pos, next_pos):
         dy = abs(next_pos[0] - pos[0]) // (next_pos[0] - pos[0])
@@ -106,7 +112,7 @@ class Piece:
                         continue
 
     def set_sprite(self, side):
-        y, x = self.get_screen_pos(self.pos[0], self.pos[1])
+        y, x = get_screen_pos(self.window.cell_radius,self.pos[0], self.pos[1])
         sprite = self.window.sprites[side]
         self.image = self.window.canvas.create_image(x, y, image=sprite)
 
@@ -122,12 +128,11 @@ class Piece:
         self.window.canvas.delete(self.image)
         self.set_sprite(self.side)        
 
-    def __init__(self, window, side, row, column, get_screen_pos):
+    def __init__(self, window, side, row, column):
         self.front = None
         self.image = None
         self.is_king = False
         self.focused = False
-        self.get_screen_pos = get_screen_pos
         self.moves = []
         self.move_modifier = 1
         self.window = window

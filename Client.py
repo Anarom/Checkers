@@ -1,4 +1,6 @@
-from Piece import Piece
+from Piece import Piece, get_screen_pos
+
+
 class Client:
     
     def __init__(self, window, side):
@@ -26,8 +28,7 @@ class Client:
         for row in range(row, row + 3):
             column = start
             for column in range(column, 8, 2):
-                piece = Piece(self.window, self.side, row, column,
-                              self.get_screen_pos)
+                piece = Piece(self.window, self.side, row, column)
                 pieces.append(piece)
                 self.window.field[row][column] = piece
             start = offset[start]
@@ -92,14 +93,9 @@ class Client:
 
     def set_focus_on_field(self, row, column):
         if not isinstance(self.window.field[row][column], Piece):
-            y, x = self.get_screen_pos(row, column)
+            y, x = get_screen_pos(self.window.cell_radius, row, column)
             sprite = self.window.sprites['focus']
             self.window.field[row][column] = self.window.canvas.create_image(x, y, image=sprite)
-
-    def get_screen_pos(self, row, column):
-        x = (2 * column + 1) * self.window.cell_radius
-        y = (2 * row + 1) * self.window.cell_radius
-        return y, x
 
     def get_field_pos(self, y, x):
         column = int(x // (self.window.cell_radius * 2))
