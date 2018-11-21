@@ -1,5 +1,5 @@
 from Piece import Piece, get_screen_pos
-
+from Client import Client
 
 class PlayerClient(Client):
 
