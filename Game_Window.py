@@ -1,7 +1,7 @@
 import tkinter
 from PIL import ImageTk, Image
 from os import getcwd
-from Client import Client
+from Client import PlayerClient
 
 
 class GameWindow:
@@ -55,8 +55,8 @@ class GameWindow:
 
     def set_game(self):
         self.get_field('white', 'gray')
-        self.client1 = Client(self, 'white')
-        self.client2 = Client(self, 'black')       
+        self.client1 = PlayerClient(self, 'white')
+        self.client2 = PlayerClient(self, 'black')       
         self.active_client = self.client1
         self.active_client.get_turn()
 

@@ -1,20 +1,19 @@
 from Piece import Piece, get_screen_pos
 
 
-class Client:
+class PlayerClient:
     
     def __init__(self, window, side):
         self.side = side
         self.window = window
-        self.focused = None
         self.pieces = self.set_pieces()
         
 
     def get_turn(self):
-        self.click1 = self.window.root.bind('<Button-1>', self.callback)
-        self.click2 = self.window.root.bind('<Button-3>', self.undo_turn)
-        can_move = self.get_moves()
-        return can_move
+        if isinstance(self, PlayerClient):
+            self.click1 = self.window.root.bind('<Button-1>', self.callback)
+            self.click2 = self.window.root.bind('<Button-3>', self.undo_turn)
+        return self.get_moves()
            
     def set_pieces(self):
         pieces = []
