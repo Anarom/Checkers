@@ -1,115 +1,28 @@
 import tkinter
-from Piece import Piece, WhitePiece, BlackPiece
 from PIL import ImageTk, Image
 from os import getcwd
+from Client import Client
 
 
 class GameWindow:
-    def undo_move(self, move):
-        self.field[move[1][0]][move[1][1]].change_pos(move[0][0],move[0][1])
-        if move[2]:
-                self.field[move[0][0]][move[0][1]].reset_king()
-        self.move_history.pop()
-        
-    def undo_hit(self, hits):
-        for hit in hits:
-            if hit[2] < 2:
-                self.field[hit[0]][hit[1]] = WhitePiece(self, hit[0], hit[1])
-            else:
-                self.field[hit[0]][hit[1]] = BlackPiece(self, hit[0], hit[1])
-            if hit[2] % 2 == 1:
-                self.field[hit[0]][hit[1]].set_king()
-        self.hit_history.pop()
-        
-    def undo_turn(self, event):
-        if self.move_history:
-            self.reset_focus()
-            self.undo_move(self.move_history[-1])
-            self.undo_hit(self.hit_history[-1])
-            self.end_turn()
-        
-    def callback(self, event):
-        row, column = self.get_field_pos(event.y, event.x)
-        cell = self.field[row][column]
-
-        if cell:
-            if isinstance(cell, Piece):
-                if cell.side == self.turn:
-                    if not cell.focused:
-                        self.reset_focus()
-                        cell.set_focus()
-                        self.focused = cell
-                    else:
-                        self.reset_focus()
-                        self.focused = None
-            else:
-                self.reset_focus()
-                self.focused.move(row, column)
-                self.end_turn()
-
-    def get_moves(self):
-        has_moves = False
-        can_hit = False
-        for iteration in range(2):
-            for row in self.field:
-                for cell in row:
-                    if isinstance(cell, Piece) and cell.side == self.turn:
-                        if not iteration:
-                            can_hit = cell.find_moves(cell.pos, []) or can_hit
-                            if cell.moves:
-                                has_moves = True
-                        else:
-                            cell.validate_moves(can_hit)
-                            
-        return has_moves
 
     def end_turn(self):
-        if self.turn == 'white':
-            self.turn = 'black'
-        else:
-            self.turn = 'white'
-        self.can_hit = False
-        if not self.get_moves():
+        self.active_client = self.client2 if self.active_client == self.client1 else self.client1
+        for cell in self.hit_history[-1]:
+            for piece in self.active_client.pieces:
+                if cell[:-1] == piece.pos:
+                    self.active_client.pieces.remove(piece)
+        if not self.active_client.get_turn():
             self.end_game()
 
     def end_game(self):
-        if self.turn == 'white':
+        if self.active_client.side == 'white':
             print('black won')
         else:
             print('white won')
         self.root.destroy()
 
-
-    def reset_focus(self):
-        for row in range(len(self.field)):
-            for column in range(len(self.field[row])):
-                if isinstance(self.field[row][column], Piece):
-                    self.field[row][column].remove_focus()
-                else:
-                    self.remove_focus_on_field(row, column)
-
-    def remove_focus_on_field(self, row, column):
-        if not isinstance(self.field[row][column], Piece):
-            self.canvas.delete(self.field[row][column])
-            self.field[row][column] = None
-
-    def set_focus_on_field(self, row, column):
-        if not isinstance(self.field[row][column], Piece):
-            y, x = self.get_screen_pos(row, column)
-            sprite = self.sprites['focus']
-            self.field[row][column] = self.canvas.create_image(x, y, image=sprite)
-
-    def get_screen_pos(self, row, column):
-        x = (2 * column + 1) * self.cell_radius
-        y = (2 * row + 1) * self.cell_radius
-        return y, x
-
-    def get_field_pos(self, y, x):
-        column = int(x // (self.cell_radius * 2))
-        row = int(y // (self.cell_radius * 2))
-        return row, column
-
-    def draw_field(self, color1, color2):
+    def get_field(self, color1, color2):
         colors = {color1: color2, color2: color1}
         color = color1
         y = 0
@@ -123,62 +36,40 @@ class GameWindow:
             color = colors[color]
             y += self.screen_size / 8
 
-    def setup_pieces(self, side):
-        offset = {0: 1, 1: 0}
-        if side == 'black':
-            start = offset[0]
-            row = 0
-        else:
-            start = 0
-            row = 5
-        for row in range(row, row + 3):
-            column = start
-            for column in range(column, 8, 2):
-                if side == 'white':
-                    piece = WhitePiece(self, row, column)
-                else:
-                    piece = BlackPiece(self, row, column)
-                self.field[row][column] = piece
-            start = offset[start]
-
     def get_sprites(self):
+        sprites = {}
         for name in ['white', 'black', 'white_focus', 'black_focus', 'focus',
                      'white_king', 'black_king', 'white_king_focus', 'black_king_focus']:
             image = Image.open(f'{getcwd()}\Sprites\\{name}.png')
             image = image.resize((self.screen_size // 8, self.screen_size // 8))
             image = ImageTk.PhotoImage(image)
-            self.sprites[name] = image
+            sprites[name] = image
+        return sprites
 
-    def root_setup(self):
-        self.root = tkinter.Tk()
-        self.root.title('Checkers')
-        self.root.geometry(f'{self.screen_size}x{self.screen_size}+250+30')
-        self.root.resizable(False, False)
-        self.root.bind('<Button-1>', self.callback)
-        self.root.bind('<Return>', self.callback)
-        self.root.bind('<Button-3>', self.undo_turn)
+    def get_root(self):
+        root = tkinter.Tk()
+        root.title('Checkers')
+        root.geometry(f'{self.screen_size}x{self.screen_size}+250+30')
+        root.resizable(False, False)
+        return root
 
     def set_game(self):
-        self.root_setup()
-        self.canvas = tkinter.Canvas(self.root, bg='black')
-        self.canvas.place(x=0, y=0, width=self.screen_size, height=self.screen_size)
-        self.get_sprites()
-        self.draw_field('white', 'gray')
-        self.setup_pieces('white')
-        self.setup_pieces('black')
-        self.get_moves()
+        self.get_field('white', 'gray')
+        self.client1 = Client(self, 'white')
+        self.client2 = Client(self, 'black')       
+        self.active_client = self.client1
+        self.active_client.get_turn()
 
     def __init__(self, screen_size):
-        self.root = None
-        self.canvas = None
-        self.focused = None
-        self.move_history = []
-        self.hit_history = []
-        self.sprites = {}
-        self.turn = 'white'
         self.screen_size = screen_size
         self.cell_radius = self.screen_size / 16
-        self.field = [[None, None, None, None, None, None, None, None] for _ in range(8)]
+        self.move_history = []
+        self.hit_history = []
+        self.field = [[None for _ in range(8)] for __ in range(8)]
+        self.root = self.get_root()
+        self.sprites = self.get_sprites()
+        self.canvas = tkinter.Canvas(self.root, bg='black')
+        self.canvas.place(x=0, y=0, width=self.screen_size, height=self.screen_size)
         self.set_game()
         self.root.mainloop()
         

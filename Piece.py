@@ -38,7 +38,7 @@ class Piece:
                                 self.moves.append([row, column, targets.copy()])
                             else:
                                 self.moves.append([row, column, []])
-                    elif type(next_cell) != type(self) and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
+                    elif next_cell.side != self.side and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
                         if not self.window.field[row + horizontal_dir][column + vertical_dir]:
                             if [row, column] not in targets:
                                 is_final = False
@@ -48,8 +48,6 @@ class Piece:
                                 targets.pop(-1)
         if is_final:
             self.moves.append([current_pos[0], current_pos[1], targets.copy()])
-        else:
-            self.window.remove_focus_on_field(current_pos[0], current_pos[1])
         if not depth == 0:
             return targets
         else:
@@ -107,26 +105,8 @@ class Piece:
                         self.moves.remove(move)
                         continue
 
-    def set_focus(self):
-        self.window.canvas.delete(self.image)
-        if self.is_king:
-            self.set_sprite(f'{self.side}_king_focus')
-        else:
-            self.set_sprite(f'{self.side}_focus')
-        self.focused = True
-        for move in self.moves:
-            self.window.set_focus_on_field(move[0], move[1])
-
-    def remove_focus(self):
-        self.window.canvas.delete(self.image)
-        if self.is_king:
-            self.set_sprite(f'{self.side}_king')
-        else:
-            self.set_sprite(f'{self.side}')
-        self.focused = False
-
     def set_sprite(self, side):
-        y, x = self.window.get_screen_pos(self.pos[0], self.pos[1])
+        y, x = self.get_screen_pos(self.pos[0], self.pos[1])
         sprite = self.window.sprites[side]
         self.image = self.window.canvas.create_image(x, y, image=sprite)
 
@@ -142,11 +122,12 @@ class Piece:
         self.window.canvas.delete(self.image)
         self.set_sprite(self.side)        
 
-    def __init__(self, window, side, row, column):
+    def __init__(self, window, side, row, column, get_screen_pos):
         self.front = None
         self.image = None
         self.is_king = False
         self.focused = False
+        self.get_screen_pos = get_screen_pos
         self.moves = []
         self.move_modifier = 1
         self.window = window
@@ -163,13 +144,3 @@ class Piece:
             self.window.canvas.delete(self.image)
         except:
             pass
-
-
-class WhitePiece(Piece):
-    def __init__(self, window, row, column):
-        super().__init__(window, 'white', row, column)
-
-
-class BlackPiece(Piece):
-    def __init__(self, window, row, column):
-        super().__init__(window, 'black', row, column)
