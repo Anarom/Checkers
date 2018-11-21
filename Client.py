@@ -1,6 +1,5 @@
 from Piece import Piece, get_screen_pos
 
-
 class Client:
     
     def __init__(self, window, side):
@@ -70,28 +69,26 @@ class PlayerClient(Client):
                     self.window.root.unbind(self.click2)
                     self.window.end_turn()
         
-    def undo_move(self, move):
-        self.window.field[move[1][0]][move[1][1]].change_pos(move[0][0],move[0][1])
-        if move[2]:
-                self.window.field[move[0][0]][move[0][1]].reset_king()
-        self.window.move_history.pop()
-        
-    def undo_hit(self, hits):
-        for hit in hits:
-            if hit[2] < 2:
-                self.window.field[hit[0]][hit[1]] = Piece(self.window, self.side, hit[0], hit[1])
-            else:
-                self.window.field[hit[0]][hit[1]] = Piece(self.window, self.side, hit[0], hit[1])
-            if hit[2] % 2 == 1:
-                self.window.field[hit[0]][hit[1]].set_king()
-        self.window.hit_history.pop()
-        
     def undo_turn(self, event):
-        if self.window.move_history:
-            self.reset_focus()
-            self.undo_move(self.window.move_history[-1])
-            self.undo_hit(self.window.hit_history[-1])
-            self.window.end_turn()
+        self.reset_focus()
+        if not self.window.move_history:
+            return 0
+        move = self.window.move_history[-1]
+        self.window.field[move.y1][move.x1].change_pos(move.y0,move.x0)
+        if move.king:
+                self.window.field[move.y0][move.x0].reset_king()
+        for target in move.targets:
+            if target[2] < 2:
+                self.window.field[target[0]][target[1]] = Piece(self.window, 'white',
+                                                                target[0], target[1])
+            else:
+                self.window.field[target[0]][target[1]] = Piece(self.window, 'black',
+                                                                target[0], target[1])
+            self.window.active_client.pieces.append(self.window.field[target[0]][target[1]])
+            if target[2] % 2 == 1:
+                self.window.field[target[0]][target[1]].set_king()
+        self.window.move_history.pop()
+        self.window.end_turn(True)
 
     def reset_focus(self):
         for piece in self.pieces:
@@ -125,7 +122,7 @@ class PlayerClient(Client):
             piece.set_sprite(f'{self.side}_focus')
         piece.focused = True
         for move in piece.moves:
-            self.set_focus_on_field(move[0], move[1])
+            self.set_focus_on_field(move.y1, move.x1)
 
     def remove_focus(self, piece):
         self.window.canvas.delete(piece.image)
@@ -134,3 +131,13 @@ class PlayerClient(Client):
         else:
             piece.set_sprite(f'{self.side}')
         piece.focused = False
+
+
+class AIClient(Client):
+
+    def process(self):
+        self.moves = []
+        for piece in self.pieces:
+            if piece.moves:
+                print(piece.moves)
+        self.window.end_turn()

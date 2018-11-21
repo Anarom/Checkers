@@ -4,6 +4,16 @@ def get_screen_pos(cell_radius, row, column):
         return y, x
     
 
+class Move():
+    def __init__(self,y0,x0,y1,x1,targets,piece):
+        self.x0 = x0
+        self.x1 = x1
+        self.y0 = y0
+        self.y1 = y1
+        self.king = False
+        self.targets = targets
+
+        
 class Piece:
     def line_is_clear(self, pos, next_pos):
         dy = abs(next_pos[0] - pos[0]) // (next_pos[0] - pos[0])
@@ -37,13 +47,12 @@ class Piece:
                 horizontal_dir = abs(vertical) // vertical
                 if self.line_is_clear([current_pos[0], current_pos[1]], [row, column]):
                     if not next_cell:
-                        if (depth == 0 or (
-                                self.is_king and vertical_dir == main_side and horizontal_dir == main_front)) and not (
-                                not self.is_king and vertical != self.front):
+                        if (depth == 0 or (self.is_king and vertical_dir == main_side and horizontal_dir == main_front)) and not (not self.is_king and vertical != self.front):
                             if self.is_king and depth != 0:
-                                self.moves.append([row, column, targets.copy()])
+                                move = Move(self.pos[0],self.pos[1], row, column, targets.copy(), self)
                             else:
-                                self.moves.append([row, column, []])
+                                move = Move(self.pos[0],self.pos[1], row, column, [], self)
+                            self.moves.append(move)
                     elif next_cell.side != self.side and 0 <= column + vertical_dir < 8 and 0 <= row + horizontal_dir < 8:
                         if not self.window.field[row + horizontal_dir][column + vertical_dir]:
                             if [row, column] not in targets:
@@ -53,32 +62,32 @@ class Piece:
                                                 vertical_dir, horizontal_dir, True)
                                 targets.pop(-1)
         if is_final:
-            self.moves.append([current_pos[0], current_pos[1], targets.copy()])
+            move = Move(self.pos[0],self.pos[1], current_pos[0], current_pos[1], targets.copy(), self)
+            self.moves.append(move)
         if not depth == 0:
             return targets
         else:
             for move in self.moves:
-                if move[2]:
+                if move.targets:
                     return True
             return False
 
-    def eat_pieces(self, row, column):
+    def eat_targets(self, move):
         eaten = []
-        for move in self.moves:
-            if row == move[0] and column == move[1]:
-                for piece in move[2]:
-                    if self.window.field[piece[0]][piece[1]].side == 'white':
-                        if not self.window.field[piece[0]][piece[1]].is_king:
-                            modifier = 0
-                        else:
-                            modifier = 1
-                    else:
-                        if not self.window.field[piece[0]][piece[1]].is_king:
-                            modifier = 2
-                        else:
-                            modifier = 3
-                    eaten.append([piece[0],piece[1],modifier])
-                    self.window.field[piece[0]][piece[1]] = None
+        for piece in move.targets:
+            target = self.window.field[piece[0]][piece[1]]
+            if target.side == 'white':
+                if not target.is_king:
+                    modifier = 0
+                else:
+                    modifier = 1
+            else:
+                if not target.is_king:
+                    modifier = 2
+                else:
+                    modifier = 3
+            eaten.append([piece[0],piece[1],modifier])
+            self.window.field[piece[0]][piece[1]] = None
         return eaten
     
     def change_pos(self, row , column):
@@ -93,21 +102,24 @@ class Piece:
         self.window.field[self.pos[0]][self.pos[1]] = self
                                                       
     def move(self, row, column):
-        self.window.move_history.append([self.pos.copy(), [row,column], False])
-        self.window.hit_history.append(self.eat_pieces(row, column))
-        self.change_pos(row, column)
+        for move in self.moves:
+            if move.y1 == row and move.x1 == column:
+                break
+        move.targets = self.eat_targets(move)
+        self.window.move_history.append(move)
+        self.change_pos(move.y1, move.x1)
         if self.pos[0] == 3.5 * (self.front + 1) and not self.is_king:
-            self.window.move_history[-1][2] = True
+            self.window.move_history[-1].king = True
             self.set_king()
 
     def validate_moves(self, can_hit):
         max_hits = 1
         for move in self.moves:
-            if len(move[2]) > max_hits:
-                max_hits = len(move[2])
+            if len(move.targets) > max_hits:
+                max_hits = len(move.targets)
             for move in self.moves.copy():
                 if can_hit:
-                    if len(move[2]) < max_hits:
+                    if len(move.targets) < max_hits:
                         self.moves.remove(move)
                         continue
 

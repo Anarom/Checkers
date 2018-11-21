@@ -1,17 +1,18 @@
 import tkinter
 from PIL import ImageTk, Image
 from os import getcwd
-from Client import PlayerClient
+from Client import PlayerClient, AIClient
 
 
 class GameWindow:
 
-    def end_turn(self):
+    def end_turn(self, undo = False):
         self.active_client = self.client2 if self.active_client == self.client1 else self.client1
-        if self.hit_history:
-            for cell in self.hit_history[-1]:
+        if self.move_history and not undo:
+            move = self.move_history[-1]
+            for target in move.targets:
                 for piece in self.active_client.pieces:
-                    if cell[:-1] == piece.pos:
+                    if target[:-1] == piece.pos:
                         self.active_client.pieces.remove(piece)
         if not self.active_client.get_turn():
             self.end_game()
