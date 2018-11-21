@@ -1,7 +1,7 @@
 import tkinter
 from PIL import ImageTk, Image
 from os import getcwd
-from PlayerClient import PlayerClient
+from Client import PlayerClient
 
 
 class GameWindow:
