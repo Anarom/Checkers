@@ -29,7 +29,6 @@ class Client:
     def get_turn(self):
         has_moves = self.get_moves()
         if isinstance(self, PlayerClient):
-            print(self.window.move_history)
             self.click1 = self.window.root.bind('<Button-1>', self.callback)
             self.click2 = self.window.root.bind('<Button-3>', self.undo_turn)
         elif has_moves:
