@@ -4,7 +4,7 @@ def get_screen_pos(cell_radius, row, column):
         return y, x
     
 
-class Move():
+class Move:
     def __init__(self,y0,x0,y1,x1,targets,piece):
         self.x0 = x0
         self.x1 = x1
